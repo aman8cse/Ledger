@@ -1,6 +1,7 @@
 import { userModel } from "../models/userModel.js";
 import jwt from "jsonwebtoken";
 import { sendMail } from "../services/emailService.js";
+import { blacklistModel } from "../models/blacklistModel.js";
 
 async function userRegister(req, res) {
     try {
@@ -94,4 +95,37 @@ async function userLogin(req, res) {
     }
 }
 
-export { userRegister, userLogin }
+async function userLogout(req, res) {
+    try {
+        const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
+        if (!token) {
+            return res.status(200).json({
+                message: "Already logged out"
+            })
+        }
+
+        const isBlacklisted = await blacklistModel.findOne({ token });
+        if (isBlacklisted) {
+            return res.status(200).json({
+                message: "Invalid token"
+            })
+        }
+
+        res.cookie("token", "");
+
+        await blacklistModel.create({
+            token: token
+        })
+
+        res.status(200).json({
+            message: "Logged out successfully"
+        })
+
+    } catch (err) {
+        return res.status(400).json({
+            message: err.message
+        })
+    }
+}
+
+export { userRegister, userLogin, userLogout }
