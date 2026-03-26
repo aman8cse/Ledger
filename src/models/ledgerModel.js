@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const LedgerSchema = new mongoose.Schema({
-    Account: {
+    account: {
         type: mongoose.Schema.Types.ObjectId,
         ref: "Account",
         required: [true, "Ledger must have a origin account"],
@@ -11,6 +11,7 @@ const LedgerSchema = new mongoose.Schema({
     amount: {
         type: Number,
         required: [true, "Amount required to initiate Ledger"],
+        min: [0, "Amount must be positive number"],
         immutable: true
     },
     transaction: {
